@@ -1,0 +1,6 @@
+{
+  "name": "Quản lý xe - máy",
+  "description": "Ứng dụng quản lý kỹ thuật, hồ sơ phương tiện, chỉ số hoạt động, lịch bảo dưỡng và thay thế vật tư cho đơn vị.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,233 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User account information, including roles and assigned vehicles.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique user ID" },
+        "email": { "type": "string", "description": "User email address" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "role": { "type": "string", "enum": ["admin", "user"], "description": "User access level" },
+        "assignedVehicles": { "type": "array", "description": "List of vehicle plate numbers or IDs assigned to this user" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "displayName", "role"]
+    },
+    "Vehicle": {
+      "title": "Vehicle",
+      "description": "Information about a managed vehicle or machine.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique ID (usually license plate)" },
+        "plateNumber": { "type": "string", "description": "Biển số xe" },
+        "name": { "type": "string", "description": "Tên phương tiện" },
+        "type": { "type": "string", "description": "Chủng loại" },
+        "manufacturer": { "type": "string", "description": "Hãng sản xuất" },
+        "manufacturingYear": { "type": "integer", "description": "Năm sản xuất" },
+        "usageYear": { "type": "integer", "description": "Năm đưa vào sử dụng" },
+        "chassisNumber": { "type": "string", "description": "Số khung" },
+        "engineNumber": { "type": "string", "description": "Số máy" },
+        "managementUnit": { "type": "string", "description": "Đơn vị quản lý" },
+        "assignedTo": { "type": "string", "description": "ID of user assigned to this vehicle" },
+        "assignedToName": { "type": "string", "description": "Name of user assigned to this vehicle" },
+        "imageUrl": { "type": "string", "description": "Ảnh phương tiện" },
+        "managementMethod": { "type": "string", "enum": ["km", "hours", "both"], "description": "Phương thức quản lý" },
+        "currentKm": { "type": "number", "description": "Chỉ số Km hiện tại" },
+        "currentHours": { "type": "number", "description": "Chỉ số giờ máy hiện tại" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["plateNumber", "name", "managementMethod"]
+    },
+    "DailyLog": {
+      "title": "DailyLog",
+      "description": "Daily usage log recorded by the user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "km": { "type": "number" },
+        "hours": { "type": "number" },
+        "notes": { "type": "string" },
+        "recordedBy": { "type": "string" },
+        "recordedByName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["vehicleId", "date"]
+    },
+    "MonthlyLog": {
+      "title": "MonthlyLog",
+      "description": "Mandatory monthly usage summary.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "month": { "type": "integer" },
+        "year": { "type": "integer" },
+        "kmValue": { "type": "number" },
+        "hoursValue": { "type": "number" },
+        "notes": { "type": "string" },
+        "recordedBy": { "type": "string" },
+        "recordedByName": { "type": "string" },
+        "kmDiff": { "type": "number", "description": "Km traveled this month" },
+        "hoursDiff": { "type": "number", "description": "Hours operated this month" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["vehicleId", "month", "year"]
+    },
+    "MaintenanceSchedule": {
+      "title": "MaintenanceSchedule",
+      "description": "Maintenance interval config set by admin for each vehicle or type.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "title": { "type": "string", "description": "Hạng mục bảo dưỡng (e.g., Thay dầu động cơ, Thay lọc)" },
+        "intervalKm": { "type": "number" },
+        "intervalHours": { "type": "number" },
+        "intervalMonths": { "type": "integer" },
+        "lastPerformedKm": { "type": "number" },
+        "lastPerformedHours": { "type": "number" },
+        "lastPerformedDate": { "type": "string", "format": "date" },
+        "nextDueKm": { "type": "number" },
+        "nextDueHours": { "type": "number" },
+        "nextDueDate": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["normal", "warning", "overdue"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["vehicleId", "title"]
+    },
+    "MaintenanceHistory": {
+      "title": "MaintenanceHistory",
+      "description": "Log of completed maintenance events.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "scheduleId": { "type": "string" },
+        "title": { "type": "string" },
+        "performedDate": { "type": "string", "format": "date" },
+        "performedKm": { "type": "number" },
+        "performedHours": { "type": "number" },
+        "cost": { "type": "number" },
+        "performedBy": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["vehicleId", "title", "performedDate"]
+    },
+    "PartReplacementHistory": {
+      "title": "PartReplacementHistory",
+      "description": "Log of specific component replacements.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "partName": { "type": "string" },
+        "replacedDate": { "type": "string", "format": "date" },
+        "replacedKm": { "type": "number" },
+        "replacedHours": { "type": "number" },
+        "warrantyMonths": { "type": "integer" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["vehicleId", "partName", "replacedDate"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Push notification or in-app alert details.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "type": { "type": "string" },
+        "targetUser": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "body", "createdAt"]
+    },
+    "EditRequest": {
+      "title": "EditRequest",
+      "description": "Requests from users to change monthly or daily logs after confirmation.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "logId": { "type": "string" },
+        "logType": { "type": "string", "enum": ["daily", "monthly"] },
+        "requestedBy": { "type": "string" },
+        "requestedByName": { "type": "string" },
+        "originalData": { "type": "object" },
+        "newData": { "type": "object" },
+        "reason": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "resolvedAt": { "type": "string", "format": "date-time" },
+        "resolvedBy": { "type": "string" }
+      },
+      "required": ["vehicleId", "logId", "logType", "requestedBy", "newData", "reason", "status"]
+    },
+    "ActivityLog": {
+      "title": "ActivityLog",
+      "description": "Audit trail logging all actions in the system.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "action", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and permissions."
+    },
+    "/vehicles/{vehicleId}": {
+      "schema": "Vehicle",
+      "description": "Details of managed vehicles."
+    },
+    "/vehicles/{vehicleId}/daily_logs/{logId}": {
+      "schema": "DailyLog",
+      "description": "Daily readings recorded for a vehicle."
+    },
+    "/vehicles/{vehicleId}/monthly_logs/{logId}": {
+      "schema": "MonthlyLog",
+      "description": "Monthly mandatory aggregated reading."
+    },
+    "/vehicles/{vehicleId}/maintenance_schedule/{scheduleId}": {
+      "schema": "MaintenanceSchedule",
+      "description": "Maintenance configuration of a vehicle."
+    },
+    "/vehicles/{vehicleId}/maintenance_history/{historyId}": {
+      "schema": "MaintenanceHistory",
+      "description": "Records of maintenance done."
+    },
+    "/vehicles/{vehicleId}/part_replacement_history/{replacementId}": {
+      "schema": "PartReplacementHistory",
+      "description": "Component replacement logs."
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "System and user notification alerts."
+    },
+    "/requests/{requestId}": {
+      "schema": "EditRequest",
+      "description": "Log correction requests for admin approval."
+    },
+    "/activity_logs/{logId}": {
+      "schema": "ActivityLog",
+      "description": "Audit logs."
+    }
+  }
+}
