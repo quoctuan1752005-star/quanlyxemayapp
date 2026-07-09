@@ -917,7 +917,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="font-black text-xs uppercase tracking-tight text-yellow-500">QUẢN LÝ XE - MÁY</h1>
-              <p className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mt-0.5">Phòng kỹ thuật QK</p>
+              <p className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mt-0.5">Đại đội 4 D1CB</p>
             </div>
           </div>
           <button 
