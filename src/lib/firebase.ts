@@ -192,6 +192,7 @@ export {
   signInWithEmailAndPassword,
   signOut,
   createUserWithEmailAndPassword,
+  signInAnonymously,
   signInWithPopup,
   GoogleAuthProvider,
   onAuthStateChanged,

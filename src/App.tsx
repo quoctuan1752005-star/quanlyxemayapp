@@ -34,7 +34,7 @@ import {
   ActivityLog 
 } from './types';
 import { Database, INITIAL_USERS } from './lib/mockData';
-import { auth, onAuthStateChanged, db, doc, getDoc, setDoc } from './lib/firebase';
+import { auth, onAuthStateChanged, db, doc, getDoc, setDoc, signInAnonymously, ensureFirebaseInitialized } from './lib/firebase';
 import { startFirestoreListeners } from './lib/firestoreSync';
 import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
@@ -186,6 +186,18 @@ export default function App() {
     // If Firebase Auth is present, listen for sign-in state and map to local user profiles
     let authUnsub: (() => void) | undefined;
     try {
+      // Ensure Firebase initialized and sign in anonymously if needed
+      (async () => {
+        await ensureFirebaseInitialized();
+        try {
+          if (auth && !auth.currentUser) {
+            await signInAnonymously(auth).catch(() => {});
+          }
+        } catch (e) {
+          // ignore
+        }
+      })();
+
       if (auth && typeof onAuthStateChanged === 'function') {
         authUnsub = onAuthStateChanged(auth, async (fbUser) => {
           try {
