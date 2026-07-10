@@ -2,10 +2,14 @@
   "name": "Quản Lý Xe",
   "short_name": "QLXe",
   "description": "Hệ thống quản lý xe quân sự và bảo trì",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "id": "/",
   "display": "standalone",
+  "display_override": ["standalone", "browser"],
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/icon.svg",

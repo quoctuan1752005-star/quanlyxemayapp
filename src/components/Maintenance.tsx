@@ -320,7 +320,7 @@ export default function Maintenance({
               onClick={() => setShowHistoryModal(true)}
               className="px-3 py-1.5 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-xxs uppercase tracking-wider"
             >
-              Ghi khống bảo dưỡng
+              Ghi mới
             </button>
           </div>
 

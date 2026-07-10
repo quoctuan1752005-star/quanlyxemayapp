@@ -51,7 +51,6 @@ export default function DataEntry({
   const [successMsg, setSuccessMsg] = useState('');
 
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const years = [2024, 2025, 2026, 2027];
 
   const handleDailySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -338,15 +337,15 @@ export default function DataEntry({
                   </div>
                   <div>
                     <label className="block text-xxs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Năm</label>
-                    <select
+                    <input
+                      type="number"
                       value={monthlyYear}
                       onChange={(e) => setMonthlyYear(Number(e.target.value))}
+                      placeholder="Nhập năm"
                       className="w-full px-3 py-2 text-xs bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 text-gray-900 dark:text-white"
-                    >
-                      {years.map(y => (
-                        <option key={y} value={y}>Năm {y}</option>
-                      ))}
-                    </select>
+                      min="2020"
+                      max="2100"
+                    />
                   </div>
                 </div>
 

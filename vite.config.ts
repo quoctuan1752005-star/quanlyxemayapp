@@ -12,9 +12,36 @@ export default defineConfig(() => {
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: 'auto',
-        manifest: false,
+        includeAssets: ['icon.svg'],
+        manifest: {
+          name: 'Quản Lý Xe',
+          short_name: 'QLXe',
+          description: 'Hệ thống quản lý xe quân sự và bảo trì',
+          start_url: '/?source=pwa',
+          scope: '/',
+          id: '/',
+          display: 'standalone',
+          display_override: ['standalone', 'browser'],
+          background_color: '#0f172a',
+          theme_color: '#0f172a',
+          orientation: 'portrait',
+          icons: [
+            {
+              src: '/icon.svg',
+              sizes: 'any',
+              type: 'image/svg+xml',
+              purpose: 'any',
+            },
+          ],
+        },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
+          cleanupOutdatedCaches: true,
+          navigateFallback: 'index.html',
+        },
+        devOptions: {
+          enabled: true,
+          type: 'module',
         },
       }),
     ],
