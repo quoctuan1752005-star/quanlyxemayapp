@@ -15,6 +15,7 @@ import {
   ActivityLog,
   UserProfile
 } from '../types';
+import { isFirebaseAvailable, db, setDoc, doc } from './firebase';
 
 // Standard Initial Users
 export const INITIAL_USERS: UserProfile[] = [
@@ -403,6 +404,28 @@ export class Database {
 
   private static set<T>(key: string, data: T): void {
     localStorage.setItem(`qlxe_${key}`, JSON.stringify(data));
+
+    // If Firestore is available, attempt to mirror the collection there.
+    try {
+      // Avoid writing back to Firestore when we are already updating from Firestore snapshots
+      const skip = typeof window !== 'undefined' && (window as any).__QLXE_SKIP_FIRESTORE_MIRROR;
+      if (!skip && isFirebaseAvailable && db) {
+        const collectionName = key;
+        const payload = data as any;
+        if (Array.isArray(payload)) {
+          payload.forEach((item: any) => {
+            const id = item?.id || item?.uid || item?.key || null;
+            if (!id) return;
+            // Fire-and-forget; do not block UI
+            setDoc(doc(db, collectionName, String(id)), item).catch((err: any) => {
+              console.warn(`Failed to sync ${collectionName}/${id} to Firestore:`, err);
+            });
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Error while attempting Firestore mirror:', e);
+    }
   }
 
   static getVehicles(): Vehicle[] {

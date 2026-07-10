@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Shield, Search, Phone, LogIn, Users, Key, ArrowLeft, Check } from 'lucide-react';
 import { UserProfile } from '../types';
+import { auth, signInWithPopup, GoogleAuthProvider, isFirebaseAvailable } from '../lib/firebase';
 
 interface AuthProps {
   users: UserProfile[];
@@ -155,6 +156,30 @@ export default function Auth({ users, onLogin }: AuthProps) {
         ) : (
           /* Selection Card Container */
           <div className="space-y-4">
+            {/* Google Sign-In */}
+            {isFirebaseAvailable && (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      if (!auth || !signInWithPopup || !GoogleAuthProvider) {
+                        alert('Firebase chưa cấu hình cho đăng nhập Google.');
+                        return;
+                      }
+                      await signInWithPopup(auth, new GoogleAuthProvider());
+                    } catch (e) {
+                      console.error('Google sign-in failed', e);
+                      alert('Đăng nhập Google thất bại. Kiểm tra console.');
+                    }
+                  }}
+                  className="w-full py-3 bg-white border border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700/60 dark:hover:bg-gray-700 text-sm font-bold rounded-2xl flex items-center justify-center gap-3"
+                >
+                  <img src="/assets/google-icon.svg" alt="Google" className="w-4 h-4" />
+                  Đăng nhập bằng Google
+                </button>
+              </div>
+            )}
             <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-50 dark:border-gray-800/50">
               <Users className="w-4.5 h-4.5 text-emerald-800 dark:text-emerald-500" />
               <span className="text-xs text-gray-700 dark:text-gray-300 font-extrabold uppercase tracking-wider">

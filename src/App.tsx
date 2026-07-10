@@ -34,6 +34,8 @@ import {
   ActivityLog 
 } from './types';
 import { Database, INITIAL_USERS } from './lib/mockData';
+import { auth, onAuthStateChanged, db, doc, getDoc, setDoc } from './lib/firebase';
+import { startFirestoreListeners } from './lib/firestoreSync';
 import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
 import VehicleList from './components/VehicleList';
@@ -168,9 +170,91 @@ export default function App() {
     // Load data from Local Database
     loadAllData();
 
+    // Start Firestore listeners (if available) to keep clients in sync
+    const unsubscribes = startFirestoreListeners({
+      setVehicles,
+      setDailyLogs,
+      setMonthlyLogs,
+      setSchedules,
+      setHistory,
+      setPartReplacements: setReplacements,
+      setNotifications,
+      setRequests,
+      setActivityLogs
+    });
+
+    // If Firebase Auth is present, listen for sign-in state and map to local user profiles
+    let authUnsub: (() => void) | undefined;
+    try {
+      if (auth && typeof onAuthStateChanged === 'function') {
+        authUnsub = onAuthStateChanged(auth, async (fbUser) => {
+          try {
+            if (!fbUser) return;
+            const uid = fbUser.uid;
+            const userDocRef = doc(db, 'users', uid);
+            const snap = await getDoc(userDocRef).catch(() => null);
+            let profile: any = null;
+            if (snap && snap.exists && snap.exists()) {
+              const d = (snap as any).data();
+              profile = {
+                uid,
+                email: fbUser.email || d.email || '',
+                phoneNumber: d.phoneNumber || '',
+                displayName: d.displayName || fbUser.displayName || (fbUser.email || '').split('@')[0],
+                role: d.role || 'user',
+                assignedVehicles: d.assignedVehicles || []
+              };
+            } else {
+              // Create a minimal user doc in Firestore so security rules referencing users/uid work
+              const defaultRole = (fbUser.email === INITIAL_USERS[0].email) ? 'admin' : 'user';
+              profile = {
+                uid,
+                email: fbUser.email || '',
+                phoneNumber: '',
+                displayName: fbUser.displayName || (fbUser.email || '').split('@')[0],
+                role: defaultRole,
+                assignedVehicles: []
+              };
+              await setDoc(userDocRef, profile, { merge: true }).catch((e) => console.warn('Failed to create user doc', e));
+            }
+
+            // Persist into local user list if missing
+            try {
+              const savedUsersRaw = localStorage.getItem('qlxe_users_list');
+              const list = savedUsersRaw ? JSON.parse(savedUsersRaw) : INITIAL_USERS.slice();
+              const exists = list.some((u: any) => u.uid === profile.uid);
+              if (!exists) {
+                list.push(profile);
+                localStorage.setItem('qlxe_users_list', JSON.stringify(list));
+                setUsers(list);
+              }
+            } catch (e) {
+              console.warn('Failed to persist user locally', e);
+            }
+
+            // Finally set as current user in the app
+            localStorage.setItem('qlxe_remembered_user', JSON.stringify(profile));
+            setCurrentUser(profile);
+          } catch (e) {
+            console.warn('Error handling Firebase auth state change', e);
+          }
+        });
+      }
+    } catch (e) {
+      // ignore if auth not configured
+    }
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      // Cleanup Firestore listeners
+      if (unsubscribes && unsubscribes.length) {
+        unsubscribes.forEach(u => {
+          try { u(); } catch (e) { /* ignore */ }
+        });
+      }
+      // Cleanup auth listener
+      try { if (authUnsub) authUnsub(); } catch (e) { /* ignore */ }
     };
   }, []);
 
