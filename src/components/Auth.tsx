@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { Shield, Search, Phone, LogIn, Users, Key, ArrowLeft, Check } from 'lucide-react';
 import { UserProfile } from '../types';
-import { auth, signInWithPopup, GoogleAuthProvider, isFirebaseAvailable } from '../lib/firebase';
+import { auth, signInWithPopup, GoogleAuthProvider, isFirebaseAvailable, ensureFirebaseInitialized } from '../lib/firebase';
 
 interface AuthProps {
   users: UserProfile[];
@@ -162,17 +162,19 @@ export default function Auth({ users, onLogin }: AuthProps) {
                 <button
                   type="button"
                   onClick={async () => {
-                    try {
-                      if (!auth || !signInWithPopup || !GoogleAuthProvider) {
-                        alert('Firebase chưa cấu hình cho đăng nhập Google.');
-                        return;
+                      try {
+                        const ready = await ensureFirebaseInitialized();
+                        if (!ready || !auth || !signInWithPopup || !GoogleAuthProvider) {
+                          alert('Firebase chưa cấu hình cho đăng nhập Google.');
+                          return;
+                        }
+                        await signInWithPopup(auth, new GoogleAuthProvider());
+                      } catch (e: any) {
+                        console.error('Google sign-in failed', e);
+                        const msg = e?.message || String(e);
+                        alert('Đăng nhập Google thất bại: ' + msg);
                       }
-                      await signInWithPopup(auth, new GoogleAuthProvider());
-                    } catch (e) {
-                      console.error('Google sign-in failed', e);
-                      alert('Đăng nhập Google thất bại. Kiểm tra console.');
-                    }
-                  }}
+                    }}
                   className="w-full py-3 bg-white border border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700/60 dark:hover:bg-gray-700 text-sm font-bold rounded-2xl flex items-center justify-center gap-3"
                 >
                   <img src="/assets/google-icon.svg" alt="Google" className="w-4 h-4" />
