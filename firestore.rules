@@ -40,64 +40,52 @@ service cloud.firestore {
 
     // Rules for users
     match /users/{userId} {
-      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
-      allow create: if isSignedIn() && isOwner(userId) && incoming().role == 'user';
-      allow update: if isSignedIn() && (
-        (isOwner(userId) && !incoming().diff(existing()).affectedKeys().hasAny(['role', 'uid', 'email'])) ||
-        isAdmin()
-      );
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow delete: if isAdmin();
     }
 
-    // Rules for vehicles
+    // Vehicles collection (top-level used by app)
     match /vehicles/{vehicleId} {
-      allow read: if isSignedIn() && (isAdmin() || existing().assignedTo == request.auth.uid);
-      allow write: if isAdmin();
+      allow read: if isSignedIn();
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin();
     }
 
-    // Rules for subcollections of vehicles
-    match /vehicles/{vehicleId}/daily_logs/{logId} {
-      function canAccessVehicle() {
-        return isAdmin() || get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.assignedTo == request.auth.uid;
-      }
-      allow read: if isSignedIn() && canAccessVehicle();
-      allow create: if isSignedIn() && canAccessVehicle() && incoming().vehicleId == vehicleId;
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+    // Daily logs (top-level collection used by app)
+    match /daily_logs/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
     }
 
-    match /vehicles/{vehicleId}/monthly_logs/{logId} {
-      function canAccessVehicle() {
-        return isAdmin() || get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.assignedTo == request.auth.uid;
-      }
-      allow read: if isSignedIn() && canAccessVehicle();
-      allow create: if isSignedIn() && canAccessVehicle() && incoming().vehicleId == vehicleId;
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+    // Monthly logs
+    match /monthly_logs/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
     }
 
-    match /vehicles/{vehicleId}/maintenance_schedule/{scheduleId} {
-      function canAccessVehicle() {
-        return isAdmin() || get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.assignedTo == request.auth.uid;
-      }
-      allow read: if isSignedIn() && canAccessVehicle();
-      allow write: if isAdmin();
+    // Maintenance schedules
+    match /schedules/{scheduleId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin();
     }
 
-    match /vehicles/{vehicleId}/maintenance_history/{historyId} {
-      function canAccessVehicle() {
-        return isAdmin() || get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.assignedTo == request.auth.uid;
-      }
-      allow read: if isSignedIn() && canAccessVehicle();
-      allow write: if isAdmin();
+    // Maintenance history
+    match /history/{historyId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
     }
 
-    match /vehicles/{vehicleId}/part_replacement_history/{replacementId} {
-      function canAccessVehicle() {
-        return isAdmin() || get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.assignedTo == request.auth.uid;
-      }
-      allow read: if isSignedIn() && canAccessVehicle();
-      allow write: if isAdmin();
+    // Part replacements
+    match /part_replacements/{replacementId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
     }
 
     // Requests (e.g. log modifications)
@@ -110,7 +98,7 @@ service cloud.firestore {
 
     // Notifications
     match /notifications/{notificationId} {
-      allow read: if isSignedIn() && (isAdmin() || resource.data.targetUser == request.auth.uid);
+      allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn() && (isAdmin() || resource.data.targetUser == request.auth.uid);
       allow delete: if isAdmin();
@@ -118,7 +106,7 @@ service cloud.firestore {
 
     // Activity Logs
     match /activity_logs/{logId} {
-      allow read: if isAdmin();
+      allow read: if isSignedIn();
       allow create: if isSignedIn() && incoming().userId == request.auth.uid;
       allow update, delete: if false;
     }
